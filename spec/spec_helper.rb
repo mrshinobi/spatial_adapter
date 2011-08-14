@@ -1,5 +1,5 @@
 require 'rubygems'
-require 'spec'
+require 'rspec'
 require 'geo_ruby'
 gem 'activerecord', '=3.0.3'
 require 'active_record'

@@ -1,10 +1,11 @@
 require 'rubygems'
-require 'spec/rake/spectask'
+require 'rspec/core/rake_task'
 
 [:mysql, :mysql2, :postgresql].each do |adapter|
   desc "Run specs for #{adapter} adapter"
-  Spec::Rake::SpecTask.new("spec:#{adapter.to_s}") do |t|
-    t.spec_files = FileList["spec/#{adapter}/*_spec.rb"]
+  RSpec::Core::RakeTask.new("spec:#{adapter.to_s}") do |spec|
+    spec.pattern = "spec/#{adapter}/*_spec.rb"
+    spec.rspec_opts = ['--backtrace']
   end
 end
 
