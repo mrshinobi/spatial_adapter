@@ -87,11 +87,9 @@ module ActiveRecord
       #MySql-specific geometry string parsing. By default, MySql returns geometries in strict wkb format with "0" characters in the first 4 positions.
       def self.string_to_geometry(string)
         return string unless string.is_a?(String)
-        begin
-          GeoRuby::SimpleFeatures::Geometry.from_ewkb(string[4..-1])
-        rescue Exception => exception
-          nil
-        end
+        GeoRuby::SimpleFeatures::Geometry.from_ewkb(string[4..-1])
+      rescue Exception => exception
+        nil
       end
     end
   end

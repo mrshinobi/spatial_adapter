@@ -5,11 +5,9 @@ ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.class_eval do
   include SpatialAdapter
   
   def postgis_version
-    begin
-      select_value("SELECT postgis_full_version()").scan(/POSTGIS="([\d\.]*)"/)[0][0]
-    rescue ActiveRecord::StatementInvalid
-      nil
-    end
+    select_value("SELECT postgis_full_version()").scan(/POSTGIS="([\d\.]*)"/)[0][0]
+  rescue ActiveRecord::StatementInvalid
+    nil
   end
   
   def postgis_major_version
