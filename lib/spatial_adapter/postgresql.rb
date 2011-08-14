@@ -165,9 +165,6 @@ ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.class_eval do
       ORDER BY i.relname
     SQL
 
-
-    indexes = []
-
     indexes = result.map do |row|
       index_name = row[0]
       unique = row[1] == 't'
@@ -190,17 +187,15 @@ ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.class_eval do
       column_names = indkey.map {|attnum| columns[attnum] ? columns[attnum][0] : nil }
       ActiveRecord::ConnectionAdapters::IndexDefinition.new(table_name, index_name, unique, column_names, spatial)
     end
-
-    indexes
   end
 
   def disable_referential_integrity(&block) #:nodoc:
-    if supports_disable_referential_integrity?() then
+    if supports_disable_referential_integrity?
       execute(tables_without_postgis.collect { |name| "ALTER TABLE #{quote_table_name(name)} DISABLE TRIGGER ALL" }.join(";"))
     end
     yield
   ensure
-    if supports_disable_referential_integrity?() then
+    if supports_disable_referential_integrity?
       execute(tables_without_postgis.collect { |name| "ALTER TABLE #{quote_table_name(name)} ENABLE TRIGGER ALL" }.join(";"))
     end
   end
@@ -235,7 +230,6 @@ ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.class_eval do
     end
 
     raw_geom_infos
-
   end
 end
 
@@ -270,8 +264,7 @@ module ActiveRecord
     end
 
     class PostgreSQLColumnDefinition < ColumnDefinition
-      attr_accessor :table_name
-      attr_accessor :srid, :with_z, :with_m, :geographic
+      attr_accessor :table_name, :srid, :with_z, :with_m, :geographic
       attr_reader :spatial
 
       def initialize(base = nil, name = nil, type=nil, limit=nil, default=nil, null=nil, srid=-1, with_z=false, with_m=false, geographic=false)
@@ -302,13 +295,14 @@ module ActiveRecord
         if spatial && !geographic
           type_sql = base.geometry_data_types[type.to_sym][:name]
           type_sql += "M" if with_m and !with_z
-          if with_m and with_z
-            dimension = 4 
-          elsif with_m or with_z
-            dimension = 3
-          else
-            dimension = 2
-          end
+          dimension =
+            if with_m and with_z
+              4
+            elsif with_m or with_z
+              3
+            else
+              2
+            end
         
           column_sql = "SELECT AddGeometryColumn('#{table_name}','#{name}',#{srid},'#{type_sql}',#{dimension})"
           column_sql += ";ALTER TABLE #{table_name} ALTER #{name} SET NOT NULL" if null == false
