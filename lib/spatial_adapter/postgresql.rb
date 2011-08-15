@@ -33,6 +33,14 @@ module SpatialAdapter
       super.merge(geometry_data_types)
     end
 
+    def type_cast(value, column)
+      if value.kind_of?(GeoRuby::SimpleFeatures::Geometry)
+        value.as_hex_ewkb
+      else
+        super
+      end
+    end
+
     #Redefines the quote method to add behaviour for when a Geometry is encountered
     def quote(value, column = nil)
       if value.kind_of?(GeoRuby::SimpleFeatures::Geometry)
