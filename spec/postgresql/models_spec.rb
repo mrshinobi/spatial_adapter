@@ -1,6 +1,8 @@
 require 'spec_helper'
 require 'shared_examples'
-require 'spatial_adapter/postgresql'
+postgis_connection
+require 'spatial_adapter'
+require 'spatial_adapter/connection_adapters/postgresql_adapter'
 require 'db/postgis_raw'
 require 'models/common'
 

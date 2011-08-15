@@ -1,5 +1,7 @@
 require 'spec_helper'
-require 'spatial_adapter/postgresql'
+postgis_connection
+require 'spatial_adapter'
+require 'spatial_adapter/connection_adapters/postgresql_adapter'
 require 'db/postgis_raw'
 require 'models/common'
 
@@ -11,7 +13,7 @@ describe "Modified PostgreSQLAdapter" do
 
   describe '#native_database_types' do
     it 'should include the geometry types' do
-      @connection.native_database_types.should include(@connection.geometry_data_types)
+      @connection.native_database_types.should include(SpatialAdapter::GEOMETRY_DATA_TYPES)
     end
 
     it 'should include the basic types' do
@@ -86,21 +88,21 @@ describe "Modified PostgreSQLAdapter" do
 
   describe "#columns" do
     describe "type" do
-      it "should be a regular SpatialPostgreSQLColumn if column is a geometry data type" do
+      it "should be a regular SpatialPostgresqlColumn if column is a geometry data type" do
         column = PointModel.columns.select{|c| c.name == 'geom'}.first
-        column.should be_a(ActiveRecord::ConnectionAdapters::SpatialPostgreSQLColumn)
+        column.should be_a(SpatialAdapter::ConnectionAdapters::SpatialPostgresqlColumn)
         column.geometry_type.should == :point
         column.should_not be_geographic
       end
       
-      it "should be a geographic SpatialPostgreSQLColumn if column is a geography data type" do
+      it "should be a geographic SpatialPostgresqlColumn if column is a geography data type" do
         column = GeographyPointModel.columns.select{|c| c.name == 'geom'}.first
-        column.should be_a(ActiveRecord::ConnectionAdapters::SpatialPostgreSQLColumn)
+        column.should be_a(SpatialAdapter::ConnectionAdapters::SpatialPostgresqlColumn)
         column.geometry_type.should == :point
         column.should be_geographic
       end
       
-      it "should be PostgreSQLColumn if column is not a spatial data type" do
+      it "should be PostgresqlColumn if column is not a spatial data type" do
         PointModel.columns.select{|c| c.name == 'extra'}.first.should be_a(ActiveRecord::ConnectionAdapters::PostgreSQLColumn)
       end
     end

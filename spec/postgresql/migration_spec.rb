@@ -1,5 +1,7 @@
 require 'spec_helper'
-require 'spatial_adapter/postgresql'
+postgis_connection
+require 'spatial_adapter'
+require 'spatial_adapter/connection_adapters/postgresql_adapter'
 
 class MigratedGeometryModel < ActiveRecord::Base
 end
@@ -15,7 +17,7 @@ describe "Spatially-enabled Migrations" do
       @connection.drop_table "migrated_geometry_models"
     end
     
-    SpatialAdapter.geometry_data_types.keys.each do |type|
+    SpatialAdapter::GEOMETRY_DATA_TYPES.keys.each do |type|
       it "should create #{type.to_s} columns" do
         ActiveRecord::Schema.define do
           create_table :migrated_geometry_models, :force => true do |t|
@@ -189,7 +191,7 @@ describe "Spatially-enabled Migrations" do
       @connection.drop_table "migrated_geometry_models"
     end
   
-    SpatialAdapter.geometry_data_types.keys.each do |type|
+    SpatialAdapter::GEOMETRY_DATA_TYPES.keys.each do |type|
       it "should add #{type.to_s} columns" do
         ActiveRecord::Schema.define do
           add_column :migrated_geometry_models, :geom, type
@@ -313,7 +315,7 @@ describe "Spatially-enabled Migrations" do
       @connection.drop_table "migrated_geometry_models"
     end
   
-    SpatialAdapter.geometry_data_types.keys.each do |type|
+    SpatialAdapter::GEOMETRY_DATA_TYPES.keys.each do |type|
       it "should remove #{type.to_s} columns using DropGeometryColumn" do
         ActiveRecord::Schema.define do
           create_table :migrated_geometry_models, :force => true do |t|
@@ -330,7 +332,7 @@ describe "Spatially-enabled Migrations" do
       end
     end
 
-    SpatialAdapter.geometry_data_types.keys.each do |type|
+    SpatialAdapter::GEOMETRY_DATA_TYPES.keys.each do |type|
       it "should remove #{type.to_s} geography columns using ALTER TABLE DROP COLUMN" do
         ActiveRecord::Schema.define do
           create_table :migrated_geometry_models, :force => true do |t|
