@@ -8,8 +8,8 @@ Gem::Specification.new do |s|
   s.version = "1.2.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
-  s.authors = ["Pete Deffendol", "Guilhem Vellut"]
-  s.date = %q{2011-01-08}
+  s.authors = [%q{Pete Deffendol}, %q{Guilhem Vellut}]
+  s.date = %q{2011-08-15}
   s.description = %q{Provides enhancements to ActiveRecord to handle spatial datatypes in PostgreSQL and MySQL.}
   s.email = %q{pete@fragility.us}
   s.extra_rdoc_files = [
@@ -20,45 +20,29 @@ Gem::Specification.new do |s|
     "README.rdoc",
     "VERSION",
     "lib/spatial_adapter.rb",
-    "lib/spatial_adapter/common/raw_geom_info.rb",
-    "lib/spatial_adapter/common/schema_definitions.rb",
-    "lib/spatial_adapter/common/schema_dumper.rb",
-    "lib/spatial_adapter/common/spatial_column.rb",
-    "lib/spatial_adapter/common/table_definition.rb",
-    "lib/spatial_adapter/mysql.rb",
-    "lib/spatial_adapter/mysql2.rb",
-    "lib/spatial_adapter/postgresql.rb",
+    "lib/spatial_adapter/connection_adapters/abstract/index_definition.rb",
+    "lib/spatial_adapter/connection_adapters/abstract/table_definition.rb",
+    "lib/spatial_adapter/connection_adapters/mysql/spatial_mysql_column.rb",
+    "lib/spatial_adapter/connection_adapters/mysql2/spatial_mysql2_column.rb",
+    "lib/spatial_adapter/connection_adapters/mysql2_adapter.rb",
+    "lib/spatial_adapter/connection_adapters/mysql_adapter.rb",
+    "lib/spatial_adapter/connection_adapters/postgresql/postgresql_column_definition.rb",
+    "lib/spatial_adapter/connection_adapters/postgresql/postgresql_table_definition.rb",
+    "lib/spatial_adapter/connection_adapters/postgresql/spatial_postgresql_column.rb",
+    "lib/spatial_adapter/connection_adapters/postgresql_adapter.rb",
     "lib/spatial_adapter/railtie.rb",
+    "lib/spatial_adapter/raw_geom_info.rb",
+    "lib/spatial_adapter/schema_dumper.rb",
+    "lib/spatial_adapter/spatial_column.rb",
     "rails/init.rb"
   ]
   s.homepage = %q{http://github.com/fragility/spatial_adapter}
-  s.require_paths = ["lib"]
-  s.rubygems_version = %q{1.3.7}
+  s.require_paths = [%q{lib}]
+  s.rubygems_version = %q{1.8.5}
   s.summary = %q{Spatial Adapter for ActiveRecord}
-  s.test_files = [
-    "spec/README.txt",
-    "spec/db/mysql2_raw.rb",
-    "spec/db/mysql_raw.rb",
-    "spec/db/postgis_raw.rb",
-    "spec/models/common.rb",
-    "spec/mysql/connection_adapter_spec.rb",
-    "spec/mysql/migration_spec.rb",
-    "spec/mysql/models_spec.rb",
-    "spec/mysql/schema_dumper_spec.rb",
-    "spec/mysql2/connection_adapter_spec.rb",
-    "spec/mysql2/migration_spec.rb",
-    "spec/mysql2/models_spec.rb",
-    "spec/mysql2/schema_dumper_spec.rb",
-    "spec/postgresql/connection_adapter_spec.rb",
-    "spec/postgresql/migration_spec.rb",
-    "spec/postgresql/models_spec.rb",
-    "spec/postgresql/schema_dumper_spec.rb",
-    "spec/shared_examples.rb",
-    "spec/spec_helper.rb"
-  ]
+  s.test_files = [%q{spec/db/mysql2_raw.rb}, %q{spec/db/mysql_raw.rb}, %q{spec/db/postgis_raw.rb}, %q{spec/models/common.rb}, %q{spec/mysql/connection_adapter_spec.rb}, %q{spec/mysql/migration_spec.rb}, %q{spec/mysql/models_spec.rb}, %q{spec/mysql/schema_dumper_spec.rb}, %q{spec/mysql2/connection_adapter_spec.rb}, %q{spec/mysql2/migration_spec.rb}, %q{spec/mysql2/models_spec.rb}, %q{spec/mysql2/schema_dumper_spec.rb}, %q{spec/postgresql/connection_adapter_spec.rb}, %q{spec/postgresql/migration_spec.rb}, %q{spec/postgresql/models_spec.rb}, %q{spec/postgresql/schema_dumper_spec.rb}, %q{spec/shared_examples.rb}, %q{spec/spec_helper.rb}, %q{spec/README.txt}]
 
   if s.respond_to? :specification_version then
-    current_version = Gem::Specification::CURRENT_SPECIFICATION_VERSION
     s.specification_version = 3
 
     if Gem::Version.new(Gem::VERSION) >= Gem::Version.new('1.2.0') then
