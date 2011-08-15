@@ -13,6 +13,10 @@ describe "Modified PostgreSQLAdapter" do
     it 'should include the geometry types' do
       @connection.native_database_types.should include(@connection.geometry_data_types)
     end
+
+    it 'should include the basic types' do
+      @connection.native_database_types.should include(ActiveRecord::ConnectionAdapters::PostgreSQLAdapter::NATIVE_DATABASE_TYPES)
+    end
   end
 
   describe '#postgis_version' do

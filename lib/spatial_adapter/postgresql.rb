@@ -117,11 +117,11 @@ module SpatialAdapter
       raw_geom_infos
     end
 
-    included do
-      def native_database_types
-        super.merge(geometry_data_types)
-      end
+    def native_database_types
+      super.merge(geometry_data_types)
+    end
 
+    included do
       def columns(table_name, name = nil) #:nodoc:
         raw_geom_infos = column_spatial_info(table_name)
 
