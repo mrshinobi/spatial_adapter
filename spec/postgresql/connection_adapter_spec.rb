@@ -8,7 +8,13 @@ describe "Modified PostgreSQLAdapter" do
     postgis_connection
     @connection = ActiveRecord::Base.connection
   end
-  
+
+  describe '#native_database_types' do
+    it 'should include the geometry types' do
+      @connection.native_database_types.should include(@connection.geometry_data_types)
+    end
+  end
+
   describe '#postgis_version' do
     it 'should report a version number if PostGIS is installed' do
       @connection.should_receive(:select_value).with('SELECT postgis_full_version()').and_return('POSTGIS="1.5.0" GEOS="3.2.0-CAPI-1.6.0" PROJ="Rel. 4.7.1, 23 September 2009" LIBXML="2.7.6" USE_STATS')

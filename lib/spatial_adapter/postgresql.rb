@@ -29,10 +29,6 @@ module SpatialAdapter
       postgis_major_version > 1 || (postgis_major_version == 1 && postgis_minor_version >= 5)
     end
 
-    def native_database_types
-      super.merge(geometry_data_types)
-    end
-
     def type_cast(value, column)
       if value.kind_of?(GeoRuby::SimpleFeatures::Geometry)
         value.as_hex_ewkb
@@ -122,6 +118,10 @@ module SpatialAdapter
     end
 
     included do
+      def native_database_types
+        super.merge(geometry_data_types)
+      end
+
       def columns(table_name, name = nil) #:nodoc:
         raw_geom_infos = column_spatial_info(table_name)
 
