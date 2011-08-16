@@ -1,7 +1,4 @@
 require 'spec_helper'
-postgis_connection
-require 'spatial_adapter'
-require 'spatial_adapter/connection_adapters/postgresql_adapter'
 
 describe "Spatially-enabled Schema Dumps" do
   before :all do

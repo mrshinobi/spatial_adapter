@@ -5,10 +5,11 @@ module SpatialAdapter
 
       included do
         attr_accessor :spatial
+        alias_method_chain :initialize, :spatial_support
       end
 
-      def initialize(table, name, unique, columns, spatial = false)
-        super(table, name, unique, columns)
+      def initialize_with_spatial_support(table, name, unique, columns, spatial = false)
+        initialize_without_spatial_support(table, name, unique, columns)
         @spatial = spatial
       end
     end

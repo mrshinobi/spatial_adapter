@@ -3,8 +3,16 @@ module SpatialAdapter
     module PostgresqlAdapter
       extend ActiveSupport::Concern
 
-      def native_database_types
-        super.merge(SpatialAdapter::GEOMETRY_DATA_TYPES)
+      included do
+        alias_method_chain :native_database_types, :spatial_types
+        alias_method_chain :type_cast, :spatial_support
+        alias_method_chain :quote, :spatial_support
+        alias_method_chain :add_column, :spatial_support
+        alias_method_chain :remove_column, :spatial_support
+      end
+
+      def native_database_types_with_spatial_types
+        native_database_types_without_spatial_types.merge(SpatialAdapter::GEOMETRY_DATA_TYPES)
       end
 
       def postgis_version
@@ -31,20 +39,20 @@ module SpatialAdapter
         postgis_major_version > 1 || (postgis_major_version == 1 && postgis_minor_version >= 5)
       end
 
-      def type_cast(value, column)
+      def type_cast_with_spatial_support(value, column)
         if value.kind_of?(GeoRuby::SimpleFeatures::Geometry)
           value.as_hex_ewkb
         else
-          super
+          type_cast_without_spatial_support(value, column)
         end
       end
 
       #Redefines the quote method to add behaviour for when a Geometry is encountered
-      def quote(value, column = nil)
+      def quote_with_spatial_support(value, column = nil)
         if value.kind_of?(GeoRuby::SimpleFeatures::Geometry)
           "'#{value.as_hex_ewkb}'"
         else
-          super
+          quote_without_spatial_support(value, column)
         end
       end
 
@@ -75,7 +83,7 @@ module SpatialAdapter
         execute create_sql
       end
 
-      def remove_column(table_name, *column_names)
+      def remove_column_with_spatial_support(table_name, *column_names)
         column_names = column_names.flatten
         columns(table_name).each do |col|
           if column_names.include?(col.name.to_sym)
@@ -83,7 +91,7 @@ module SpatialAdapter
             if col.is_a?(SpatialColumn) && col.spatial? && !col.geographic?
               execute "SELECT DropGeometryColumn('#{table_name}','#{col.name}')"
             else
-              super(table_name, col.name)
+              remove_column_without_spatial_support(table_name, col.name)
             end
           end
         end
@@ -140,7 +148,7 @@ module SpatialAdapter
         end
       end
 
-      def add_column(table_name, column_name, type, options = {})
+      def add_column_with_spatial_support(table_name, column_name, type, options = {})
         unless SpatialAdapter::GEOMETRY_DATA_TYPES[type].nil?
           geom_column = SpatialAdapter::ConnectionAdapters::PostgresqlColumnDefinition.new(self, column_name, type, nil, nil, options[:null], options[:srid] || -1 , options[:with_z] || false , options[:with_m] || false, options[:geographic] || false)
           if geom_column.geographic
@@ -156,7 +164,7 @@ module SpatialAdapter
             execute geom_column.to_sql
           end
         else
-          super
+          add_column_without_spatial_support(table_name, column_name, type, options)
         end
       end
 
@@ -221,21 +229,8 @@ module SpatialAdapter
           ActiveRecord::ConnectionAdapters::IndexDefinition.new(table_name, index_name, unique, column_names, spatial)
         end
       end
-
-      def disable_referential_integrity(&block) #:nodoc:
-        if supports_disable_referential_integrity?
-          execute(tables_without_postgis.collect { |name| "ALTER TABLE #{quote_table_name(name)} DISABLE TRIGGER ALL" }.join(";"))
-        end
-        yield
-      ensure
-        if supports_disable_referential_integrity?
-          execute(tables_without_postgis.collect { |name| "ALTER TABLE #{quote_table_name(name)} ENABLE TRIGGER ALL" }.join(";"))
-        end
-      end
     end
   end
 end
 
-ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.class_eval do
-  include SpatialAdapter::ConnectionAdapters::PostgresqlAdapter
-end
+ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.send(:include, SpatialAdapter::ConnectionAdapters::PostgresqlAdapter)

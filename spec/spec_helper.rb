@@ -45,6 +45,10 @@ def mysql2_connection
   ActiveRecord::Migration.verbose = false
 end
 
+postgis_connection
+require 'spatial_adapter'
+SpatialAdapter.initialize!('postgresql')
+
 class GeometryFactory
   class << self
     def point

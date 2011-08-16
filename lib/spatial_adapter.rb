@@ -53,6 +53,33 @@ module SpatialAdapter
     :geometry => { :name => "GEOMETRY"}
   }
 
+  class << self
+    def initialize!(adapter)
+      ActiveRecord::SchemaDumper.class_eval do
+        include SpatialAdapter::SchemaDumper
+      end
+
+      ActiveRecord::ConnectionAdapters::IndexDefinition.class_eval do
+        include SpatialAdapter::ConnectionAdapters::IndexDefinition
+      end
+
+      ActiveRecord::ConnectionAdapters::TableDefinition.class_eval do
+        include SpatialAdapter::ConnectionAdapters::TableDefinition
+      end
+
+      case adapter
+      when 'mysql'
+        SpatialAdapter::ConnectionAdapters::MysqlAdapter
+      when 'mysql2'
+        SpatialAdapter::ConnectionAdapters::Mysql2Adapter
+      when 'postgresql'
+        SpatialAdapter::ConnectionAdapters::PostgresqlAdapter
+      else
+        raise SpatialAdapter::NotCompatibleError.new("spatial_adapter does not currently support the #{adapter} database.")
+      end
+    end
+  end
+
   class NotCompatibleError < ::StandardError
   end
 end
