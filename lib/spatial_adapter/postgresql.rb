@@ -162,15 +162,15 @@ ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.class_eval do
      # Changed from upstread: link to pg_am to grab the index type (e.g. "gist")
      result = query(<<-SQL, name)
        SELECT distinct i.relname, d.indisunique, d.indkey, t.oid, am.amname
-         FROM pg_class t, pg_class i, pg_index d, pg_attribute a, pg_am am
+         FROM pg_class t
+         INNER JOIN pg_index d ON t.oid = d.indrelid
+         INNER JOIN pg_class i ON d.indexrelid = i.oid
+         INNER JOIN pg_attribute a ON a.attrelid = t.oid
+         INNER JOIN pg_am am ON i.relam = am.oid
        WHERE i.relkind = 'i'
-         AND d.indexrelid = i.oid
          AND d.indisprimary = 'f'
-         AND t.oid = d.indrelid
          AND t.relname = '#{table_name}'
          AND i.relnamespace IN (SELECT oid FROM pg_namespace WHERE nspname IN (#{schemas}) )
-         AND i.relam = am.oid
-         AND a.attrelid = t.oid
       ORDER BY i.relname
     SQL
 
@@ -184,10 +184,10 @@ ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.class_eval do
       # Changed from upstream: need to get the column types to test for spatial indexes
       columns = query(<<-SQL, "Columns for index #{row[0]} on #{table_name}").inject({}) {|attlist, r| attlist[r[1]] = [r[0], r[2]]; attlist}
       SELECT a.attname, a.attnum, t.typname
-      FROM pg_attribute a, pg_type t
+      FROM pg_attribute a
+      INNER JOIN pg_type t ON a.atttypid = t.oid
       WHERE a.attrelid = #{oid}
       AND a.attnum IN (#{indkey.join(",")})
-      AND a.atttypid = t.oid
       SQL
 
       # Only GiST indexes on spatial columns denote a spatial index
