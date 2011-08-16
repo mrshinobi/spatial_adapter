@@ -219,19 +219,18 @@ describe "Modified PostgreSQLAdapter" do
   end  
   
   describe "#add_index" do
-    after :each do
-      @connection.should_receive(:execute).with(any_args())
+    it "should create a spatial index given :spatial => true" do
+      @connection.add_index('geometry_models', 'geom', :spatial => true)
+      @connection.indexes('geometry_models').first.spatial.should be_true
+      @connection.indexes('geometry_models').first.columns.should == ['geom']
       @connection.remove_index('geometry_models', 'geom')
     end
     
-    it "should create a spatial index given :spatial => true" do
-      @connection.should_receive(:execute).with(/using gist/i)
-      @connection.add_index('geometry_models', 'geom', :spatial => true)
-    end
-    
     it "should not create a spatial index unless specified" do
-      @connection.should_not_receive(:execute).with(/using gist/i)
       @connection.add_index('geometry_models', 'extra')
+      @connection.indexes('geometry_models').first.spatial.should be_false
+      @connection.indexes('geometry_models').first.columns.should == ['extra']
+      @connection.remove_index('geometry_models', 'extra')
     end
   end
 end
