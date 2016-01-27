@@ -3,31 +3,31 @@ require 'active_record/connection_adapters/postgresql_adapter'
 
 ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.class_eval do
   include SpatialAdapter
-  
+
   def postgis_version
     select_value("SELECT postgis_full_version()").scan(/POSTGIS="([\d\.]*)"/)[0][0]
   rescue ActiveRecord::StatementInvalid
     nil
   end
-  
+
   def postgis_major_version
     version = postgis_version
     version ? version.scan(/^(\d)\.\d\.\d$/)[0][0].to_i : nil
   end
-  
+
   def postgis_minor_version
     version = postgis_version
     version ? version.scan(/^\d\.(\d)\.\d$/)[0][0].to_i : nil
   end
-  
+
   def spatial?
     !postgis_version.nil?
   end
-  
+
   def supports_geographic?
     postgis_major_version > 1 || (postgis_major_version == 1 && postgis_minor_version >= 5)
   end
-  
+
   alias :original_native_database_types :native_database_types
   def native_database_types
     original_native_database_types.merge!(geometry_data_types)
@@ -54,7 +54,7 @@ ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.class_eval do
 
   def columns(table_name, name = nil) #:nodoc:
     raw_geom_infos = column_spatial_info(table_name)
-    
+
     column_definitions(table_name).collect do |name, type, default, notnull|
       case type
       when /geography/i
@@ -114,7 +114,7 @@ ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.class_eval do
       end
     end
   end
-  
+
   alias :original_add_column :add_column
   def add_column(table_name, column_name, type, options = {})
     unless geometry_data_types[type].nil?
@@ -122,7 +122,7 @@ ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.class_eval do
       if geom_column.geographic
         default = options[:default]
         notnull = options[:null] == false
-        
+
         execute("ALTER TABLE #{quote_table_name(table_name)} ADD COLUMN #{geom_column.to_sql}")
 
         change_column_default(table_name, column_name, default) if options_include_default?(options)
@@ -157,8 +157,8 @@ ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.class_eval do
   # This is a full replacement for the ActiveRecord method and as a result
   # has a higher probability of breaking in future releases.
   def indexes(table_name, name = nil)
-     schemas = schema_search_path.split(/,/).map { |p| quote(p) }.join(',')
-     
+     schemas = schema_search_path.split(/,/).map { |p| quote(p.strip) }.join(',')
+
      # Changed from upstread: link to pg_am to grab the index type (e.g. "gist")
      result = query(<<-SQL, name)
        SELECT distinct i.relname, d.indisunique, d.indkey, t.oid, am.amname
@@ -210,11 +210,11 @@ ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.class_eval do
   end
 
   private
-  
+
   def tables_without_postgis
     tables - %w{ geometry_columns spatial_ref_sys }
   end
-  
+
   def column_spatial_info(table_name)
     constr = query("SELECT * FROM geometry_columns WHERE f_table_name = '#{table_name}'")
 
@@ -246,7 +246,7 @@ module ActiveRecord
   module ConnectionAdapters
     class PostgreSQLTableDefinition < TableDefinition
       attr_reader :geom_columns
-      
+
       def column(name, type, options = {})
         unless (@base.geometry_data_types[type.to_sym].nil? or
                 (options[:create_using_addgeometrycolumn] == false))
@@ -254,7 +254,7 @@ module ActiveRecord
           column = self[name] || PostgreSQLColumnDefinition.new(@base, name, type)
           column.null = options[:null]
           column.srid = options[:srid] || -1
-          column.with_z = options[:with_z] || false 
+          column.with_z = options[:with_z] || false
           column.with_m = options[:with_m] || false
           column.geographic = options[:geographic] || false
 
@@ -269,7 +269,7 @@ module ActiveRecord
         else
           super(name, type, options)
         end
-      end    
+      end
     end
 
     class PostgreSQLColumnDefinition < ColumnDefinition
@@ -285,7 +285,7 @@ module ActiveRecord
         @with_m = with_m
         @geographic = geographic
       end
-      
+
       def sql_type
         if geographic
           type_sql = base.geometry_data_types[type.to_sym][:name]
@@ -299,7 +299,7 @@ module ActiveRecord
           super
         end
       end
-      
+
       def to_sql
         if spatial && !geographic
           type_sql = base.geometry_data_types[type.to_sym][:name]
@@ -312,7 +312,7 @@ module ActiveRecord
             else
               2
             end
-        
+
           column_sql = "SELECT AddGeometryColumn('#{table_name}','#{name}',#{srid},'#{type_sql}',#{dimension})"
           column_sql += ";ALTER TABLE #{table_name} ALTER #{name} SET NOT NULL" if null == false
           column_sql
@@ -337,7 +337,7 @@ module ActiveRecord
       def geographic?
         @geographic
       end
-      
+
       #Transforms a string to a geometry. PostGIS returns a HewEWKB string.
       def self.string_to_geometry(string)
         return string unless string.is_a?(String)
@@ -347,14 +347,14 @@ module ActiveRecord
       def self.create_simplified(name, default, null = true)
         new(name, default, "geometry", null)
       end
-      
+
       def self.create_from_geography(name, default, sql_type, null = true)
         params = extract_geography_params(sql_type)
         new(name, default, sql_type, null, params[:srid], params[:with_z], params[:with_m], true)
       end
-      
+
       private
-      
+
       # Add detection of PostGIS-specific geography columns
       def geometry_simplified_type(sql_type)
         case sql_type
